@@ -105,10 +105,10 @@ class ViewController: UIViewController {
                               bottom_window: mur_bas2)
         
         objet_bounce3 = Bounce(ball: balle,
-                                left_window: mur_gauche3,
-                                right_window: mur_droit3,
-                                top_window: mur_haut3,
-                                bottom_window: mur_bas3)
+                               left_window: mur_gauche3,
+                               right_window: mur_droit3,
+                               top_window: mur_haut3,
+                               bottom_window: mur_bas3)
         
         objet_bounce4 = Bounce(ball: balle,
                                 left_window: mur_gauche4,
