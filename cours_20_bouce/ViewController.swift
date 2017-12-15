@@ -1,6 +1,7 @@
 //-------------
 import UIKit
 import Foundation
+import AVFoundation
 //-------------
 class ViewController: UIViewController {
 //-------------
@@ -46,7 +47,14 @@ class ViewController: UIViewController {
     @IBOutlet weak var target: UIView!
     @IBOutlet weak var target2: UIView!
     @IBOutlet weak var target3: UIView!
+    @IBOutlet weak var target4: UIView!
+    @IBOutlet weak var target5: UIView!
+    @IBOutlet weak var target6: UIView!
     @IBOutlet weak var points_label: UILabel!
+    
+    //message game over
+    
+    @IBOutlet weak var message_game_over: UIView!
     
     //-------------
     var objet_bounce: Bounce!
@@ -56,6 +64,8 @@ class ViewController: UIViewController {
     var objet_bounce5: Bounce!
     var cos: Double!
     var sin: Double!
+    var mus_background = AVAudioPlayer()
+    var aniMusicTimer: Timer!
     
     //Timer
     var aTimer: Timer!
@@ -71,8 +81,10 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        loadSounds()
+        player()
         // Target dans le viewDidLoad
-        tab_de_target = [target, target2, target3]
+        tab_de_target = [target, target2, target3, target4, target5, target6]
         
         objet_bounce = Bounce(ball: balle,
                               left_window: mur_gauche,
@@ -107,12 +119,12 @@ class ViewController: UIViewController {
         balle.layer.cornerRadius = 22.5
         lancerAnimation()
     }
-    //-------------
+    //------------- Animation ball
     func lancerAnimation(){
         let degres: Double = Double(arc4random_uniform(360))
         cos = __cospi(degres/180)
         sin = __sinpi(degres/180)
-        aTimer = Timer.scheduledTimer(timeInterval: 0.002, target: self, selector: #selector(animation) , userInfo: nil, repeats: true)
+        aTimer = Timer.scheduledTimer(timeInterval: 0.001, target: self, selector: #selector(animation) , userInfo: nil, repeats: true)
         
         //Timer pour le jeu
         game_timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(keepTimer), userInfo: nil, repeats: true)
@@ -120,7 +132,7 @@ class ViewController: UIViewController {
     //-----
     @objc func keepTimer(){
         sec -= 1
-        timer_label.text = "\(sec) seconds...."
+        timer_label.text = "\(sec) seconds..."
         
     }
     //----
@@ -129,7 +141,9 @@ class ViewController: UIViewController {
         for t in tab_de_target {
             
             // if des points
-            if balle.frame.intersects(t.frame){
+            if balle.frame.intersects(t.frame)
+            {
+                //----
                 var smallNumber = t.frame.width/2 + 10
                 var largeNumber = self.view.frame.width - 10 - t.frame.width/2
                 let randomX = arc4random_uniform(UInt32(largeNumber - smallNumber + 1)) + UInt32(smallNumber)
@@ -139,7 +153,7 @@ class ViewController: UIViewController {
                 t.center.x = CGFloat(randomX)
                 t.center.y = CGFloat(randomY)
                 points += 10 // points originale 1
-                points_label.text = "\(points) points"
+                points_label.text = "\(points) Bitcoin"
             }
         }
         
@@ -156,11 +170,13 @@ class ViewController: UIViewController {
         balle.center.y += CGFloat(sin)
         
         //Balle intersects avec game over le jeu va arreter
-        if balle.frame.intersects(game_over.frame){
-            aTimer.invalidate()
-            aTimer = nil
-            game_timer.invalidate() //test
-            game_timer = nil
+        if balle.frame.intersects(game_over.frame)
+        {
+            aTimer.invalidate(); aTimer = nil
+            game_timer.invalidate(); game_timer = nil
+            mus_background.stop()
+            aniMusicTimer.invalidate(); aniMusicTimer = nil
+            messageGameOver()
         }
         //Bounce 1
         sin = objet_bounce.returnCosSinAfterTouch(sin: sin, cos: cos)[0]
@@ -183,7 +199,7 @@ class ViewController: UIViewController {
         cos = objet_bounce5.returnCosSinAfterTouch(sin: sin, cos: cos)[1]
         
     }
-    //---
+    //--- Fonction touchesMoved
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesMoved(touches, with: event)
         let touch: UITouch = touches.first!
@@ -200,5 +216,42 @@ class ViewController: UIViewController {
 
         
     }
+    
+    // Fonction sounds
+    func loadSounds()
+    {
+        do
+        {
+            mus_background = try AVAudioPlayer(contentsOf: .init(fileURLWithPath: Bundle.main.path(forResource: "background", ofType: "mp3")!))
+            mus_background.prepareToPlay()
+        }
+        catch{ print(error) }
+    }
+    func player()
+    {
+        aniMusicTimer = Timer.scheduledTimer(timeInterval: 1,
+                                             target: self,
+                                             selector: #selector(playerMusic),
+                                             userInfo: nil,
+                                             repeats: true)
+    }
+    @objc func playerMusic()
+    {
+        if mus_background.isPlaying == false
+        {
+            mus_background.play()
+        }
+    }
+    
+    // Fonction message game over
+    func messageGameOver(){
+        if message_game_over.isHidden == true{
+            message_game_over.isHidden = false
+        } else {
+            message_game_over.isHidden = true
+            
+        }
+    }
+    
 //------------- Fin du code
 }
